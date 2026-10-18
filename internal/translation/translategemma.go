@@ -32,7 +32,7 @@ func NewTranslateGemmaTranslator(baseURL, apiKey, modelID string, maxTokens int)
 func (t *TranslateGemmaTranslator) Translate(sourceText, sourceLang, targetLang string) (string, error) {
 	// Build the prompt according to TranslateGemma format
 	prompt := fmt.Sprintf(
-		"You are a professional %s (%s) to %s (%s) translator. Your goal is to accurately convey the meaning and nuances of the original text while adhering to the target language grammar, vocabulary, and cultural sensitivities.\nProduce only the translation, without any additional explanations or commentary. Please translate the following text into %s (%s):\n\n%s\nTranslation:",
+		"You are a professional %s (%s) to %s (%s) translator. Your goal is to accurately convey the meaning and nuances of the original text while adhering to the target language grammar, vocabulary, and cultural sensitivities.\nProduce only the translation, without any additional explanations or commentary. Please translate the following text into %s (%s):\n\n%s",
 		sourceLang, sourceLang, targetLang, targetLang, targetLang, targetLang, sourceText,
 	)
 

@@ -136,12 +136,7 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform translation
-	translatedText, err := s.translator.Translate(req.Q, req.Source, req.Target)
-	if err != nil {
-		http.Error(w, "Translation failed", http.StatusInternalServerError)
-		return
-	}
+	var err error
 
 	// Perform language detection if source is auto or empty
 	detectedLang := ""
@@ -151,6 +146,15 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Language detection failed", http.StatusInternalServerError)
 			return
 		}
+		// Use detected language for translation
+		req.Source = detectedLang
+	}
+
+	// Perform translation with source language (either specified or detected)
+	translatedText, err := s.translator.Translate(req.Q, req.Source, req.Target)
+	if err != nil {
+		http.Error(w, "Translation failed", http.StatusInternalServerError)
+		return
 	}
 
 	// Build response

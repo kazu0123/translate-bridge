@@ -1,0 +1,25 @@
+{
+  "version": "1",
+
+  // API の待ち受けアドレス
+  "listen_address": "127.0.0.1:5050",
+
+  // OpenAI Chat Completions 互換 API の接続先
+  "upstream_base_url": "http://127.0.0.1:1234/v1",
+
+  // バックエンドの API キー
+  "upstream_api_key": "",
+
+  // 翻訳モデル
+  "translation_model": {
+    "type": "translategemma",
+    "id": "translategemma-27b-it",
+    "max_tokens": 512
+  },
+
+  // 言語判定モデル
+  "detection_model": {
+    "id": "qwen/qwen3-4b",
+    "max_tokens": 32
+  }
+}

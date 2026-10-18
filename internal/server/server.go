@@ -1,10 +1,13 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"com.kokubokazuki/translate-bridge/internal/config"
 	"com.kokubokazuki/translate-bridge/internal/translation"
@@ -96,15 +99,31 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		Q            string `json:"q"`
-		Source       string `json:"source"`
-		Target       string `json:"target"`
+		Source       string `json:"source,omitempty"`
+		Target       string `json:"target,omitempty"`
 		Format       string `json:"format,omitempty"`
 		Alternatives int    `json:"alternatives,omitempty"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-		return
+	body, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
+
+	// Try JSON parsing first
+	if err := json.Unmarshal(body, &req); err != nil {
+		// Try form-data parsing
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Invalid request format", http.StatusBadRequest)
+			return
+		}
+
+		req.Q = strings.TrimSpace(r.FormValue("q"))
+		req.Source = strings.TrimSpace(r.FormValue("source"))
+		req.Target = strings.TrimSpace(r.FormValue("target"))
+		req.Format = strings.TrimSpace(r.FormValue("format"))
+		req.Alternatives = 0
+		if alternativesStr := strings.TrimSpace(r.FormValue("alternatives")); alternativesStr != "" {
+			fmt.Sscanf(alternativesStr, "%d", &req.Alternatives)
+		}
 	}
 
 	if req.Q == "" {
@@ -120,7 +139,7 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 	// Perform translation
 	translatedText, err := s.translator.Translate(req.Q, req.Source, req.Target)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Translation failed: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Translation failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -129,7 +148,7 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Source == "auto" || req.Source == "" {
 		detectedLang, err = s.detector.DetectLanguage(req.Q)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Language detection failed: %v", err), http.StatusInternalServerError)
+			http.Error(w, "Language detection failed", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -147,7 +166,7 @@ func (s *Server) translateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Alternatives > 0 {
-		response["alternatives"] = []string{} // Placeholder for alternatives
+		response["alternatives"] = []string{}
 	}
 
 	json.NewEncoder(w).Encode(response)
@@ -166,9 +185,20 @@ func (s *Server) detectHandler(w http.ResponseWriter, r *http.Request) {
 		Q string `json:"q"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-		return
+	body, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
+
+	// Try JSON parsing first
+	if err := json.Unmarshal(body, &req); err != nil {
+		// Try form-data parsing
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Invalid request format", http.StatusBadRequest)
+			return
+		}
+
+		req.Q = strings.TrimSpace(r.FormValue("q"))
+	} else {
+		// JSON parsed, req.Q is already set from json.Unmarshal
 	}
 
 	if req.Q == "" {
@@ -179,14 +209,14 @@ func (s *Server) detectHandler(w http.ResponseWriter, r *http.Request) {
 	// Perform language detection
 	detectedLang, err := s.detector.DetectLanguage(req.Q)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Language detection failed: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Language detection failed", http.StatusInternalServerError)
 		return
 	}
 
 	// Build response (confidence is hardcoded as we can't determine it from the model)
 	response := []map[string]interface{}{
 		{
-			"confidence": float64(90), // Default confidence
+			"confidence": float64(90),
 			"language":   detectedLang,
 		},
 	}

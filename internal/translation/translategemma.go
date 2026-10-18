@@ -53,13 +53,13 @@ func (t *TranslateGemmaTranslator) DetectLanguage(text string) (string, error) {
 func (t *TranslateGemmaTranslator) sendRequest(prompt string) (string, error) {
 	// Build the message according to OpenAI Chat Completions format
 	request := map[string]interface{}{
-		"model":               t.modelID,
-		"messages":            []map[string]interface{}{{"role": "user", "content": prompt}},
-		"max_tokens":          t.maxTokens,
-		"temperature":         0.0,
-		"top_p":               1.0,
-		"frequency_penalty":   0.0,
-		"presence_penalty":    0.0,
+		"model":             t.modelID,
+		"messages":          []map[string]interface{}{{"role": "user", "content": prompt}},
+		"max_tokens":        t.maxTokens,
+		"temperature":       0.0,
+		"top_p":             1.0,
+		"frequency_penalty": 0.0,
+		"presence_penalty":  0.0,
 	}
 
 	if t.apiKey != "" {

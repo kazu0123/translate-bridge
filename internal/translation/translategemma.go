@@ -30,13 +30,29 @@ func NewTranslateGemmaTranslator(baseURL, apiKey, modelID string, maxTokens int)
 
 // Translate translates text using TranslateGemma
 func (t *TranslateGemmaTranslator) Translate(sourceText, sourceLang, targetLang string) (string, error) {
-	// Build the prompt according to TranslateGemma format
-	prompt := fmt.Sprintf(
-		"You are a professional %s (%s) to %s (%s) translator. Your goal is to accurately convey the meaning and nuances of the original text while adhering to the target language grammar, vocabulary, and cultural sensitivities.\nProduce only the translation, without any additional explanations or commentary. Please translate the following text into %s (%s):\n\n%s",
-		sourceLang, sourceLang, targetLang, targetLang, targetLang, targetLang, sourceText,
-	)
+	// Build messages according to TranslateGemma format
+	// Per the model spec: content must be a list with exactly one entry
+	// containing type, source_lang_code, target_lang_code, and text
+	messages := []map[string]interface{}{
+		{
+			"role": "user",
+			"content": []map[string]interface{}{
+				{
+					"type":           "text",
+					"source_lang_code": sourceLang,
+					"target_lang_code": targetLang,
+					"text":           sourceText,
+				},
+			},
+		},
+	}
 
-	return t.sendRequest(prompt)
+	request := map[string]interface{}{
+		"model":   t.modelID,
+		"messages": messages,
+	}
+
+	return t.sendRequest(request)
 }
 
 // DetectLanguage detects the language of the given text
@@ -50,22 +66,7 @@ func (t *TranslateGemmaTranslator) DetectLanguage(text string) (string, error) {
 }
 
 // sendRequest sends a request to the OpenAI-compatible API
-func (t *TranslateGemmaTranslator) sendRequest(prompt string) (string, error) {
-	// Build the message according to OpenAI Chat Completions format
-	request := map[string]interface{}{
-		"model":             t.modelID,
-		"messages":          []map[string]interface{}{{"role": "user", "content": prompt}},
-		"max_tokens":        t.maxTokens,
-		"temperature":       0.0,
-		"top_p":             1.0,
-		"frequency_penalty": 0.0,
-		"presence_penalty":  0.0,
-	}
-
-	if t.apiKey != "" {
-		request["api_key"] = t.apiKey
-	}
-
+func (t *TranslateGemmaTranslator) sendRequest(request interface{}) (string, error) {
 	jsonData, err := json.Marshal(request)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)

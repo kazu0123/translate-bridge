@@ -12,9 +12,14 @@
 
   // 翻訳モデル
   "translation_model": {
-    "type": "translategemma",
     "id": "translategemma-27b-it",
-    "max_tokens": 512
+    "max_tokens": 512,
+
+    "type": "translategemma"
+    // モデルが想定する、言語情報の入力形式を指定
+    // - "translategemma": Google 公式モデルが求める、構造化された入力を想定（ https://huggingface.co/google/translategemma-27b-it ）
+    // - "translategemma-vllm": vLLM 互換翻訳モデルが求める、インライン入力形式を想定（ https://huggingface.co/Infomaniak-AI/vllm-translategemma-27b-it ）
+    // - "generic" or other: 汎用モデルのための、インライン入力を想定
   },
 
   // 言語判定モデル

@@ -18,9 +18,13 @@ func NewTranslator(baseURL, apiKey, modelID, modelType string, maxTokens int) *T
 	switch modelType {
 	case "translategemma":
 		impl = NewTranslateGemmaTranslator(baseURL, apiKey, modelID, maxTokens)
+	case "translategemma-vllm":
+		impl = NewTranslateGemmaVLLMTranslator(baseURL, apiKey, modelID, maxTokens)
+	case "generic":
+		fallthrough
 	default:
-		// Default to TranslateGemma
-		impl = NewTranslateGemmaTranslator(baseURL, apiKey, modelID, maxTokens)
+		// Default to generic translator (non-specialized models)
+		impl = NewGenericTranslator(baseURL, apiKey, modelID, maxTokens)
 	}
 
 	return &Translator{impl: impl}

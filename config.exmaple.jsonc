@@ -19,6 +19,7 @@
     // モデルが想定する、言語情報の入力形式を指定
     // - "translategemma": Google 公式モデルが求める、構造化された入力を想定（ https://huggingface.co/google/translategemma-27b-it ）
     // - "translategemma-vllm": vLLM 互換翻訳モデルが求める、インライン入力形式を想定（ https://huggingface.co/Infomaniak-AI/vllm-translategemma-27b-it ）
+    // - "translategemma-nullpolab-any2any": ぬるぽらぼ 様によるLM Studio様jinjaテンプレートから、any_to_any.txtを想定（ https://note.com/nullpolab/n/n4e35910902d3 ）
     // - "generic" or other: 汎用モデルのための、インライン入力を想定
   },
 

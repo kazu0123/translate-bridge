@@ -20,6 +20,8 @@ func NewTranslator(baseURL, apiKey, modelID, modelType string, maxTokens int) *T
 		impl = NewTranslateGemmaTranslator(baseURL, apiKey, modelID, maxTokens)
 	case "translategemma-vllm":
 		impl = NewTranslateGemmaVLLMTranslator(baseURL, apiKey, modelID, maxTokens)
+	case "translategemma-nullpolab-any2any":
+		impl = NewTranslateGemmaNullpolabTranslator(baseURL, apiKey, modelID, maxTokens)
 	case "generic":
 		fallthrough
 	default:
